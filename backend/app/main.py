@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from dotenv import load_dotenv
 import httpx
-import os
+import os, time
 
 load_dotenv()
 
@@ -39,7 +39,7 @@ def health_check():
 
 @app.post("/v1/chat/completions")
 async def chat_completions(request: ChatCompletionRequest):
-
+    start_time = time.time()
     async with httpx.AsyncClient() as client:
 
         response = await client.post(
@@ -51,5 +51,15 @@ async def chat_completions(request: ChatCompletionRequest):
 
             json = request.model_dump()
         ) 
+    end_time = time.time()
+    latency_ms = round((end_time - start_time)*1000)
 
-    return response.json()
+    openai_response = response.json()
+
+    return {
+        "costlens":{
+            "latency_ms":latency_ms,
+            "model": request.model
+        },
+        "openai_response": openai_response
+    }
