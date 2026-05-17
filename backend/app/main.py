@@ -147,3 +147,16 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
             status_code=e.response.status_code,
             detail=e.response.text
         )
+    
+
+@app.get("/events")
+def get_all_events(db: Session=Depends(get_db)):
+    events = (
+        db.query(LLMEvent)
+        .order_by(LLMEvent.created_at.desc())
+        .limit(20)
+        .all()
+    )
+
+    return events
+        
