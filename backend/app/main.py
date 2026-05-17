@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from dotenv import load_dotenv
@@ -60,42 +60,57 @@ def health_check():
     }
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: ChatCompletionRequest):
+async def chat_completions(request: ChatCompletionRequest, x_costlens_feature: str | None = Header(default = "unknown")):
     start_time = time.time()
-    async with httpx.AsyncClient() as client:
 
-        response = await client.post(
-            "https://api.openai.com/v1/chat/completions",
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
 
-            headers = {
-                "Authorization": f"Bearer {OPENAI_API_KEY}"
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+
+                headers = {
+                    "Authorization": f"Bearer {OPENAI_API_KEY}"
+                },
+
+                json = request.model_dump()
+            ) 
+        end_time = time.time()
+        latency_ms = round((end_time - start_time)*1000)
+
+        openai_response = response.json()
+
+        usage = openai_response.get("usage",{})
+
+        prompt_tokens = usage.get("prompt_tokens", 0)
+        completion_tokens = usage.get("completion_tokens", 0)
+        total_tokens = usage.get("total_tokens", 0)
+
+        estimated_cost = calculate_cost(request.model, prompt_tokens, completion_tokens)
+
+
+
+        return {
+            "costlens":{
+                "feature":x_costlens_feature,
+                "latency_ms":latency_ms,
+                "model": request.model,
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": total_tokens,
+                "estimated_cost_usd": estimated_cost,
             },
+            "openai_response": openai_response
+        }
 
-            json = request.model_dump()
-        ) 
-    end_time = time.time()
-    latency_ms = round((end_time - start_time)*1000)
+    except httpx.ReadTimeout:
+        raise HTTPException(
+            status_code=504,
+            detail="OpenAI took too long to respond. Try again."
+        )
 
-    openai_response = response.json()
-
-    usage = openai_response.get("usage",{})
-
-    prompt_tokens = usage.get("prompt_tokens", 0)
-    completion_tokens = usage.get("completion_tokens", 0)
-    total_tokens = usage.get("total_tokens", 0)
-
-    estimated_cost = calculate_cost(request.model, prompt_tokens, completion_tokens)
-
-
-
-    return {
-        "costlens":{
-            "latency_ms":latency_ms,
-            "model": request.model,
-            "prompt_tokens": prompt_tokens,
-            "completion_tokens": completion_tokens,
-            "total_tokens": total_tokens,
-            "estimated_cost_usd": estimated_cost,
-        },
-        "openai_response": openai_response
-    }
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail=e.response.text
+        )
