@@ -14,7 +14,7 @@ router = APIRouter()
 async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(get_db), x_costlens_feature: str | None = Header(default = "unknown")):
     
     start_time = time.time()
-    openai_response = call_openai_chat_completion(request.model_dump())
+    openai_response = await call_openai_chat_completion(request.model_dump())
 
     end_time = time.time()
     latency_ms = round((end_time - start_time)*1000)

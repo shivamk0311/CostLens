@@ -1,4 +1,5 @@
 from app.models.llm_event import LLMEvent
+from sqlalchemy import func
 
 def create_llm_event(
         db,
@@ -43,3 +44,21 @@ def get_recent_events(db, limit=20):
     )
 
     return events
+
+def get_cost_summary(db):
+    summary = (
+        db.query(
+            func.count(LLMEvent.id).label("total_requests"),
+            func.sum(LLMEvent.total_tokens).label("total_tokens"),
+            func.sum(LLMEvent.estimated_cost).label("total_cost_usd"),
+            func.avg(LLMEvent.latency_ms).label("average_latency_ms"),
+        )
+        .first()
+    )
+
+    return {
+        "total_requests": summary.total_requests or 0,
+        "total_tokens": summary.total_tokens or 0,
+        "total_cost_usd": round(summary.total_cost_usd or 0, 6),
+        "average_latency_ms": round(summary.average_latency_ms or 0, 2),
+    }

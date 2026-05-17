@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from app.database.connection import engine, Base
-from app.routes import proxy, events
+from app.routes import proxy, events, analytics
 from app.models.llm_event import LLMEvent
 
 
@@ -27,3 +27,4 @@ def health_check():
 
 app.include_router(proxy.router)
 app.include_router(events.router)
+app.include_router(analytics.router)
