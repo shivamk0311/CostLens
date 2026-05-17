@@ -62,3 +62,18 @@ def get_cost_summary(db):
         "total_cost_usd": round(summary.total_cost_usd or 0, 6),
         "average_latency_ms": round(summary.average_latency_ms or 0, 2),
     }
+
+def get_cost_by_feature(db):
+    results = (
+        db.query(
+            LLMEvent.feature,
+            func.sum(LLMEvent.estimated_cost).label("total_cost_usd")
+        ).group_by(LLMEvent.feature).all()
+    )
+
+    return [
+        {
+            "feature" : row.feature,
+            "totacl_cost_usd" : round(row.total_cost_usd, 6)
+        } for row in results
+    ]
