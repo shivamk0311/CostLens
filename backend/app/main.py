@@ -1,9 +1,14 @@
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from dotenv import load_dotenv
 import httpx
 import os, time
+
+from app.database import engine, SessionLocal
+from app.models import Base, LLMEvent
+
+from sqlalchemy.orm import Session
 
 load_dotenv()
 
@@ -14,6 +19,8 @@ app = FastAPI(
     title="CostLens API",
     version="0.1.0"
 )
+
+Base.metadata.create_all(bind=engine)
 
 class Message(BaseModel):
     role: str 
@@ -46,6 +53,12 @@ def calculate_cost(model, prompt_tokens, completion_tokens):
 
     return round(input_cost + output_cost, 6)
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db 
+    finally:
+        db.close()
 
 @app.get('/')
 def root():
@@ -60,7 +73,7 @@ def health_check():
     }
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: ChatCompletionRequest, x_costlens_feature: str | None = Header(default = "unknown")):
+async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(get_db), x_costlens_feature: str | None = Header(default = "unknown")):
     start_time = time.time()
 
     try:
@@ -88,6 +101,26 @@ async def chat_completions(request: ChatCompletionRequest, x_costlens_feature: s
 
         estimated_cost = calculate_cost(request.model, prompt_tokens, completion_tokens)
 
+        event = LLMEvent(
+
+            feature = x_costlens_feature,
+
+            model = request.model,
+
+            prompt_tokens = prompt_tokens,
+
+            completion_tokens = completion_tokens,
+
+            total_tokens = total_tokens,
+
+            estimated_cost = estimated_cost,
+
+            latency_ms = latency_ms
+        )
+
+        db.add(event)
+        db.commit()
+        db.refresh(event)
 
 
         return {
