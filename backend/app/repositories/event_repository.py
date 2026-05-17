@@ -74,6 +74,21 @@ def get_cost_by_feature(db):
     return [
         {
             "feature" : row.feature,
-            "totacl_cost_usd" : round(row.total_cost_usd, 6)
+            "total_cost_usd" : round(row.total_cost_usd or 0, 6)
+        } for row in results
+    ]
+
+def get_cost_by_model(db):
+    results = (
+        db.query(
+            LLMEvent.model,
+            func.sum(LLMEvent.estimated_cost).label("total_cost_usd")
+        ).group_by(LLMEvent.model).all()
+    )
+
+    return[
+        {
+            "model" : row.model,
+            "total_cost_usd": round(row.total_cost_usd or 0, 6)
         } for row in results
     ]
