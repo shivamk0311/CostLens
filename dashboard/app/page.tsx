@@ -22,10 +22,16 @@ type FeatureCost = {
   total_cost_usd: number;
 }
 
+type ModelCost = {
+  model: string;
+  total_cost_usd: number;
+}
+
 export default function Home(){
 
   const [summary, setSummary] = useState<CostSummary | null>(null);
   const [featureCosts, setFeatureCosts] = useState<FeatureCost[]>([]);
+  const [modelCosts, setModelCosts] = useState<ModelCost[]>([]);
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/costs/summary") 
@@ -37,6 +43,12 @@ export default function Home(){
     .then((res) => res.json())
     .then((data) => setFeatureCosts(data))
     .catch((err) => console.error(err))
+
+    fetch("http://127.0.0.1:8000/costs/by-model")
+    .then((res) => res.json())
+    .then((data) => setModelCosts(data))
+    .catch((err) => console.error(err))
+    
   }, []);
 
   return (
@@ -74,7 +86,6 @@ export default function Home(){
 
             <div className='h-80 w-full min-w-0'>
               <ResponsiveContainer width="100%" height={300}>
-
                 <BarChart 
                   data={featureCosts}
                   margin={{
@@ -84,25 +95,50 @@ export default function Home(){
                     bottom: 20
                   }}
                 >
-
                   <XAxis dataKey="feature" stroke="#94a3b8" tick={{ fontSize: 12 }} />
-
                   <YAxis tick={{ fontSize: 10 }} stroke="#94a3b8"/>
-
                   <Tooltip />
-
                   <Bar
                     dataKey="total_cost_usd"
                     fill="#38bdf8"
                     radius={[6,6,0,0]}
                   />
-
                 </BarChart>
-
               </ResponsiveContainer>
             </div>
 
           </div>
+          <div className='col-span-1 md:col-span-2 mt-10 rounded-xl bg-slate-900 p-6'>
+            <h2 className='text-2xl font-bold mb-6'>
+              Cost By Model 
+            </h2>
+
+            <div className='h-80 w-full min-w-0'>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart 
+                  data={modelCosts}
+                  margin={{
+                    top: 10,
+                    right: 10,
+                    left: -20,
+                    bottom: 20
+                  }}
+                >
+                  <XAxis dataKey="model" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 10 }} stroke="#94a3b8"/>
+                  <Tooltip />
+                  <Bar
+                    dataKey="total_cost_usd"
+                    fill="#38bdf8"
+                    radius={[6,6,0,0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+          </div>
+
+
 
         </div>
       )}
