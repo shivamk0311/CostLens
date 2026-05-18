@@ -6,11 +6,11 @@ from app.repositories.event_repository import get_cost_summary, get_cost_by_feat
 
 router = APIRouter()
 
-@router.get('/cost/summary')
+@router.get('/costs/summary')
 def costs_summary(db: Session=Depends(get_db)):
     return get_cost_summary(db)
 
-@router.get("/cost/by-feature")
+@router.get("/costs/by-feature")
 def costs_by_feature(db : Session=Depends(get_db)):
     return get_cost_by_feature(db)
 
