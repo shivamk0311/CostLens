@@ -1,6 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip
+} from "recharts";
 
 type CostSummary = {
   total_requests: number;
@@ -9,15 +17,26 @@ type CostSummary = {
   average_latency_ms: number;
 };
 
+type FeatureCost = {
+  feature: string;
+  total_cost_usd: number;
+}
+
 export default function Home(){
 
   const [summary, setSummary] = useState<CostSummary | null>(null);
+  const [featureCosts, setFeatureCosts] = useState<FeatureCost[]>([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/costs/summary") //http://127.0.0.1:8000/cost/summary'
+    fetch("http://127.0.0.1:8000/costs/summary") 
     .then((res) => res.json())
     .then((data) => setSummary(data))
     .catch((err) => console.error(err));
+
+    fetch("http://127.0.0.1:8000/costs/by-feature")
+    .then((res) => res.json())
+    .then((data) => setFeatureCosts(data))
+    .catch((err) => console.error(err))
   }, []);
 
   return (
@@ -47,8 +66,47 @@ export default function Home(){
             <p className="text-slate-400">Average Latency</p>
             <h2 className="text-3xl font-bold">{summary.average_latency_ms} ms</h2>
           </div>
+
+          <div className='col-span-1 md:col-span-2 mt-10 rounded-xl bg-slate-900 p-6'>
+            <h2 className='text-2xl font-bold mb-6'>
+              Cost By Feature 
+            </h2>
+
+            <div className='h-80 w-full min-w-0'>
+              <ResponsiveContainer width="100%" height={300}>
+
+                <BarChart 
+                  data={featureCosts}
+                  margin={{
+                    top: 10,
+                    right: 10,
+                    left: -20,
+                    bottom: 20
+                  }}
+                >
+
+                  <XAxis dataKey="feature" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+
+                  <YAxis tick={{ fontSize: 10 }} stroke="#94a3b8"/>
+
+                  <Tooltip />
+
+                  <Bar
+                    dataKey="total_cost_usd"
+                    fill="#38bdf8"
+                    radius={[6,6,0,0]}
+                  />
+
+                </BarChart>
+
+              </ResponsiveContainer>
+            </div>
+
+          </div>
+
         </div>
       )}
+
     </main>
   )
 }
