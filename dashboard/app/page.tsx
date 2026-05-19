@@ -68,33 +68,42 @@ export default function Home(){
 
   return (
     <main className='min-h-screen bg-slate-950 text-white p-8'>
-      <h1 className='text-4xl font-bold mb=2'>CostLens</h1>
-      <p className="text-slate-400 mb-8">
-        AI inference cost intelligence dashboard
-      </p>
+      <div className="mb-10">
+        <p className="text-sm text-sky-400 font-semibold mb-2">
+          AI Cost Observability
+        </p>
+
+        <h1 className="text-5xl font-bold mb-3">
+          CostLens
+        </h1>
+
+        <p className="text-slate-400 max-w-2xl">
+          Track LLM usage, token consumption, latency, and feature-level spending from one dashboard.
+        </p>
+      </div>
 
       {!summary ? (
         <p>Loading Dashboard...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="rounded-xl bg-slate-900 p-5">
+          <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
             <p className="text-slate-400">Total Requests</p>
             <h2 className="text-3xl font-bold">{summary.total_requests}</h2>
           </div>
-          <div className="rounded-xl bg-slate-900 p-5">
+          <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
             <p className="text-slate-400">Total Tokens</p>
             <h2 className="text-3xl font-bold">{summary.total_tokens}</h2>
           </div>
-          <div className="rounded-xl bg-slate-900 p-5">
+          <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
             <p className="text-slate-400">Total Cost</p>
             <h2 className="text-3xl font-bold">${summary.total_cost_usd}</h2>
           </div>
-          <div className="rounded-xl bg-slate-900 p-5">
+          <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
             <p className="text-slate-400">Average Latency</p>
             <h2 className="text-3xl font-bold">{summary.average_latency_ms} ms</h2>
           </div>
 
-          <div className='col-span-1 md:col-span-2 mt-10 rounded-xl bg-slate-900 p-6'>
+          <div className='col-span-1 md:col-span-2 mt-10 rounded-2xl bg-slate-900 p-6 border border-slate-800'>
             <h2 className='text-2xl font-bold mb-6'>
               Cost By Feature 
             </h2>
@@ -123,7 +132,7 @@ export default function Home(){
             </div>
 
           </div>
-          <div className='col-span-1 md:col-span-2 mt-10 rounded-xl bg-slate-900 p-6'>
+          <div className='col-span-1 md:col-span-2 mt-10 rounded-2xl bg-slate-900 p-6 border border-slate-800'>
             <h2 className='text-2xl font-bold mb-6'>
               Cost By Model 
             </h2>
