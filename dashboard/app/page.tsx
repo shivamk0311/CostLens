@@ -20,18 +20,28 @@ type CostSummary = {
 type FeatureCost = {
   feature: string;
   total_cost_usd: number;
-}
+};
 
 type ModelCost = {
   model: string;
   total_cost_usd: number;
-}
+};
+
+type Events = {
+  id:  number;
+  feature: string;
+  model: string;
+  total_tokens: number;
+  estimated_cost: number;
+  latency_ms: number;
+};
 
 export default function Home(){
 
   const [summary, setSummary] = useState<CostSummary | null>(null);
   const [featureCosts, setFeatureCosts] = useState<FeatureCost[]>([]);
   const [modelCosts, setModelCosts] = useState<ModelCost[]>([]);
+  const [events, setEvents] = useState<Events[]>([]);
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/costs/summary") 
@@ -47,6 +57,11 @@ export default function Home(){
     fetch("http://127.0.0.1:8000/costs/by-model")
     .then((res) => res.json())
     .then((data) => setModelCosts(data))
+    .catch((err) => console.error(err))
+
+    fetch("http://127.0.0.1:8000/events")
+    .then((res) => res.json())
+    .then((data) => setEvents(data))
     .catch((err) => console.error(err))
     
   }, []);
@@ -135,7 +150,36 @@ export default function Home(){
                 </BarChart>
               </ResponsiveContainer>
             </div>
+          </div>
 
+          <div className='col-span-1 md:col-span-4 mt-10 rounded-xl bg-slate-900 p-6'>
+            <h2 className='text-2xl font-bold mb-6'>Recent Activity</h2>
+
+            <div className='overflow-x-auto'>
+              <table  className='w-full'>
+                <thead className='text-slate-400 border-b border-slate-700'>
+                  <tr>
+                    <th className='text-left p-3'>Feature</th>
+                    <th className='text-left p-3'>Model</th>
+                    <th className='text-left p-3'>Tokens</th>
+                    <th className='text-left p-3'>Cost</th>
+                    <th className='text-left p-3'>Latency</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {events.map((event) => (
+                    <tr key={event.id} className='border-b border-slate-800'>
+                      <td className='p-3'>{event.feature}</td>
+                      <td className='p-3'>{event.model}</td>
+                      <td className='p-3'>{event.total_tokens}</td>
+                      <td className='p-3'>{event.estimated_cost}</td>
+                      <td className='p-3'>{event.latency_ms}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
 
