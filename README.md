@@ -207,22 +207,6 @@ LLM applications often become expensive without visibility into usage patterns. 
 
 ---
 
-## Screenshots
-
-Add screenshots inside:
-
-```text
-docs/
-```
-
-Example:
-
-```md
-![Dashboard](docs/dashboard.png)
-```
-
----
-
 ## Author
 
 Shivam Khokhani
