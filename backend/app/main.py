@@ -3,10 +3,8 @@ from fastapi import FastAPI
 from app.database.connection import engine, Base
 from app.routes import proxy, events, analytics
 from app.models.llm_event import LLMEvent
+from app.models.semantic_cache import SemanticCache
 from fastapi.middleware.cors import CORSMiddleware
-
-
-
 
 
 app = FastAPI(
