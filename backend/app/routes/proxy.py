@@ -13,6 +13,7 @@ from app.repositories.semantic_cache_repository import (
     find_exact_cache_match,
     store_cache_entry,
     increment_cache_hit,
+    find_semantic_cache_match,
 )
 
 router = APIRouter()
@@ -34,14 +35,26 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
                 "cache_hit": True,
                 "cache_type": "exact",
                 "feature":x_costlens_feature,
-                # "latency_ms":latency_ms,
                 "model": request.model,
-                # "prompt_tokens": prompt_tokens,
-                # "completion_tokens": completion_tokens,
-                # "total_tokens": total_tokens,
-                # "estimated_cost_usd": estimated_cost,
             },
             "openai_response": cached_response
+        }
+    
+    embedding = generate_embedding(prompt)
+    semantic_cache_match =  find_semantic_cache_match(db, embedding, similarity_threshold=0.90)
+
+    if semantic_cache_match:
+        increment_cache_hit(db, semantic_cache_match)
+        cached_response = json.loads(semantic_cache_match.response)
+
+        return {
+            "costlens": {
+                "semantic_cache_hit": True,
+                "cache-type": "semantic",
+                "feature": x_costlens_feature,
+                "model": request.model, 
+            },
+            "openai_response" : cached_response
         }
 
     openai_response = await call_openai_chat_completion(request.model_dump())
@@ -56,8 +69,6 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
     total_tokens = usage.get("total_tokens", 0)
 
     estimated_cost = calculate_cost(request.model, prompt_tokens, completion_tokens)
-
-    embedding = generate_embedding(prompt)
 
     store_cache_entry(
         db=db,

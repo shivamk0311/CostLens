@@ -33,3 +33,28 @@ def increment_cache_hit(db, cache_entry):
     db.refresh(cache_entry)
 
     return cache_entry
+
+def find_semantic_cache_match(db, embedding, similarity_threshold=0.80):
+
+    results = (db.query(
+                    SemanticCache,
+                    SemanticCache.embedding.cosine_distance(
+                        embedding
+                    ).label('distance')
+                ).order_by("distance")
+                .limit(1)
+                .first()
+            )
+                
+    
+    if not results:
+        return None 
+    
+    cache_entry, distance = results
+
+    similarity = 1 - distance
+
+    if similarity >= similarity_threshold:
+        return cache_entry
+
+    return None
