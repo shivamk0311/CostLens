@@ -8,6 +8,7 @@ from app.services.openai_service import call_openai_chat_completion
 from app.services.cost_service import calculate_cost
 from app.repositories.event_repository import create_llm_event
 
+
 from app.services.embedding_service import generate_embedding
 from app.repositories.semantic_cache_repository import (
     find_exact_cache_match,
@@ -15,6 +16,8 @@ from app.repositories.semantic_cache_repository import (
     increment_cache_hit,
     find_semantic_cache_match,
 )
+
+from app.services.mlflow_service import log_cache_experiment
 
 router = APIRouter()
 
@@ -41,11 +44,19 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
         }
     
     embedding = generate_embedding(prompt)
-    semantic_cache_match =  find_semantic_cache_match(db, embedding, similarity_threshold=0.90)
+    semantic_cache_match, similarity_score  =  (find_semantic_cache_match(db, embedding, similarity_threshold=0.90))
 
     if semantic_cache_match:
         increment_cache_hit(db, semantic_cache_match)
         cached_response = json.loads(semantic_cache_match.response)
+
+        log_cache_experiment(
+            threshold=0.80,
+            similarity_score=similarity_score,
+            cache_hit=True,
+            latency_ms=0,
+            estimated_cost=0,
+        )
 
         return {
             "costlens": {
@@ -75,6 +86,14 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
         prompt=prompt,
         embedding=embedding,
         response=json.dumps(openai_response),
+    )
+
+    log_cache_experiment(
+        threshold=0.80,
+        similarity_score=similarity_score,
+        cache_hit=False,
+        latency_ms=latency_ms,
+        estimated_cost=estimated_cost,
     )
 
     create_llm_event(

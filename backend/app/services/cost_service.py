@@ -11,6 +11,9 @@ def calculate_cost(model, prompt_tokens, completion_tokens):
         },
     }
 
+    if model not in pricing:
+        raise ValueError(f"Unsupported model for pricing: {model}")
+
     model_pricing = pricing[model]
 
     if model_pricing is None:

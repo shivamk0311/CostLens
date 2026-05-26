@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from app.database.connection import engine, Base
-from app.routes import proxy, events, analytics
+from app.routes import proxy, events, analytics, cache
 from app.models.llm_event import LLMEvent
 from app.models.semantic_cache import SemanticCache
 from fastapi.middleware.cors import CORSMiddleware
@@ -43,3 +43,4 @@ def health_check():
 app.include_router(proxy.router)
 app.include_router(events.router)
 app.include_router(analytics.router)
+app.include_router(cache.router)

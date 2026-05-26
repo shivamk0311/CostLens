@@ -1,4 +1,5 @@
 from app.models.semantic_cache import SemanticCache
+from sqlalchemy import func
 import json
 import hashlib
 
@@ -55,6 +56,23 @@ def find_semantic_cache_match(db, embedding, similarity_threshold=0.80):
     similarity = 1 - distance
 
     if similarity >= similarity_threshold:
-        return cache_entry
+        return cache_entry, similarity
 
-    return None
+    return None, similarity
+
+def get_cache_stats(db):
+
+    total_entries = (db.query(func.count(SemanticCache.id)).scalar() or 0)
+
+    total_hits = (db.query(func.sum(SemanticCache.hit_count)).scalar() or 0)
+    
+    avg_costs = 0.0004
+
+    estimated_saved_cost = avg_costs * total_hits
+
+    return {
+        "total_cache_entries": total_entries,
+        "total_cache_hits": total_hits,
+        "estimated_saved_requests": total_hits,
+        "estimated_saved_cost_usd": round(estimated_saved_cost, 6)
+    }
