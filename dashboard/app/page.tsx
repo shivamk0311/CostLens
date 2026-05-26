@@ -98,49 +98,59 @@ export default function Home(){
       {!summary ? (
         <p>Loading Dashboard...</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
-            <p className="text-slate-400">Total Requests</p>
-            <h2 className="text-3xl font-bold">{summary.total_requests}</h2>
-          </div>
-          <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
-            <p className="text-slate-400">Total Tokens</p>
-            <h2 className="text-3xl font-bold">{summary.total_tokens}</h2>
-          </div>
-          <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
-            <p className="text-slate-400">Total Cost</p>
-            <h2 className="text-3xl font-bold">${summary.total_cost_usd}</h2>
-          </div>
-          <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
-            <p className="text-slate-400">Average Latency</p>
-            <h2 className="text-3xl font-bold">{summary.average_latency_ms} ms</h2>
-          </div>
+        <div>
+          <h2 className="text-xl font-semibold text-slate-300 mb-4">
+            Request Stats
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
+              <p className="text-slate-400">Total Requests</p>
+              <h2 className="text-3xl font-bold">{summary.total_requests}</h2>
+            </div>
+            <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
+              <p className="text-slate-400">Total Tokens</p>
+              <h2 className="text-3xl font-bold">{summary.total_tokens}</h2>
+            </div>
+            <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
+              <p className="text-slate-400">Total Cost</p>
+              <h2 className="text-3xl font-bold">${summary.total_cost_usd}</h2>
+            </div>
+            <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
+              <p className="text-slate-400">Average Latency</p>
+              <h2 className="text-3xl font-bold">{summary.average_latency_ms} ms</h2>
+            </div>
 
+          </div>
         </div>
       )}
 
       {cacheStats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-            <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
-              <p className="text-slate-400">Cache Entries</p>
-              <h2 className="text-3xl font-bold">{cacheStats.total_cache_entries}</h2>
-            </div>
+          <div>
+            <h2 className="text-xl font-semibold text-slate-300 mb-4 mt-8">
+              Cache Stats
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+              <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
+                <p className="text-slate-400">Cache Entries</p>
+                <h2 className="text-3xl font-bold">{cacheStats.total_cache_entries}</h2>
+              </div>
 
-            <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
-              <p className="text-slate-400">Cache Hits</p>
-              <h2 className="text-3xl font-bold">{cacheStats.total_cache_hits}</h2>
-            </div>
+              <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
+                <p className="text-slate-400">Cache Hits</p>
+                <h2 className="text-3xl font-bold">{cacheStats.total_cache_hits}</h2>
+              </div>
 
-            <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
-              <p className="text-slate-400">Saved Requests</p>
-              <h2 className="text-3xl font-bold">{cacheStats.estimated_saved_requests}</h2>
-            </div>
+              <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
+                <p className="text-slate-400">Saved Requests</p>
+                <h2 className="text-3xl font-bold">{cacheStats.estimated_saved_requests}</h2>
+              </div>
 
-            <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
-              <p className="text-slate-400">Estimated Saved Cost</p>
-              <h2 className="text-3xl font-bold">
-                ${cacheStats.estimated_saved_cost_usd}
-              </h2>
+              <div className="rounded-2xl bg-slate-900 p-6 border border-slate-800">
+                <p className="text-slate-400">Estimated Saved Cost</p>
+                <h2 className="text-3xl font-bold">
+                  ${cacheStats.estimated_saved_cost_usd}
+                </h2>
+              </div>
             </div>
           </div>
         )
