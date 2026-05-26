@@ -40,6 +40,17 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    volumes:
+      - ./dashboard:/app
+      - /app/node_modules
+    command: npm run dev
+  
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.12.1
+    container_name: costlens-mlflow
+    ports:
+      - "5001:5000"
+    command: mlflow ui --host 0.0.0.0
 
 volumes:
   postgres_data:
