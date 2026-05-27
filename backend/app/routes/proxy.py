@@ -140,16 +140,16 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
         estimated_cost=estimated_cost,
     )
 
-    create_llm_event(
-        db=db,
-        feature=x_costlens_feature,
-        model=request.model,
-        prompt_tokens=prompt_tokens,
-        completion_tokens=completion_tokens,
-        total_tokens=total_tokens,
-        estimated_cost=estimated_cost,
-        latency_ms=latency_ms
-    )
+    # create_llm_event(
+    #     db=db,
+    #     feature=x_costlens_feature,
+    #     model=request.model,
+    #     prompt_tokens=prompt_tokens,
+    #     completion_tokens=completion_tokens,
+    #     total_tokens=total_tokens,
+    #     estimated_cost=estimated_cost,
+    #     latency_ms=latency_ms
+    # )
 
     return {
         "costlens":{
