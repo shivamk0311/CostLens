@@ -19,6 +19,10 @@ from app.repositories.semantic_cache_repository import (
 
 from app.services.mlflow_service import log_cache_experiment
 
+from app.services.kafka_producer import publish_llm_event
+from datetime import datetime
+
+
 router = APIRouter()
 
 @router.post("/v1/chat/completions")
@@ -33,6 +37,19 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
         increment_cache_hit(db, exact_cache_match)
 
         cached_response = json.loads(exact_cache_match.response)
+
+        publish_llm_event({
+            "feature": x_costlens_feature,
+            "model": request.model,
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+            "estimated_cost": 0,
+            "latency_ms": 0,
+            "cache_hit": True,
+            "cache_type": "exact",
+            "created_at": datetime.utcnow().isoformat()
+        })
         return {
             "costlens":{
                 "cache_hit": True,
@@ -58,6 +75,19 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
             estimated_cost=0,
         )
 
+        publish_llm_event({
+            "feature": x_costlens_feature,
+            "model": request.model,
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+            "estimated_cost": 0,
+            "latency_ms": 0,
+            "cache_hit": True,
+            "cache_type": "semantic",
+            "created_at": datetime.utcnow().isoformat()
+        })
+
         return {
             "costlens": {
                 "semantic_cache_hit": True,
@@ -80,6 +110,20 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
     total_tokens = usage.get("total_tokens", 0)
 
     estimated_cost = calculate_cost(request.model, prompt_tokens, completion_tokens)
+
+    event_payload = {
+        "feature": x_costlens_feature,
+        "model": request.model,
+        "prompt_tokens": prompt_tokens,
+        "completion_tokens": completion_tokens,
+        "total_tokens": total_tokens,
+        "estimated_cost": estimated_cost,
+        "latency_ms": latency_ms,
+        "cache_hit": False,
+        "created_at": datetime.utcnow().isoformat()
+    }
+
+    publish_llm_event(event_payload)
 
     store_cache_entry(
         db=db,
