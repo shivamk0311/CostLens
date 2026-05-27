@@ -69,6 +69,18 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
   
+  kafka-consumer:
+    build:
+      context: ./backend
+    container_name: costlens-kafka-consumer
+    command: python app/workers/kafka_consumer.py
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/costlens
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgres
+      - kafka
+  
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.12.1
     container_name: costlens-mlflow
