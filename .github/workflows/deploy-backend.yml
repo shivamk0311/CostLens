@@ -1,0 +1,44 @@
+name: Deploy CostLens Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-backend.yml"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name costlensacr
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t costlensacr.azurecr.io/costlens-backend:${{ github.sha }} \
+            -t costlensacr.azurecr.io/costlens-backend:latest \
+            ./backend
+
+      - name: Push Docker image
+        run: |
+          docker push costlensacr.azurecr.io/costlens-backend:${{ github.sha }}
+          docker push costlensacr.azurecr.io/costlens-backend:latest
+
+      - name: Restart Azure App Service
+        run: |
+          az webapp restart \
+            --name costlens-backend-az \
+            --resource-group costlens-rg
