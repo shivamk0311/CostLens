@@ -21,7 +21,8 @@ services:
       context: ./backend
     container_name: costlens-backend
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/costlens
+      # DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/costlens
+      DATABASE_URL: ${DATABASE_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
@@ -73,9 +74,10 @@ services:
     build:
       context: ./backend
     container_name: costlens-kafka-consumer
-    command: python app/workers/kafka_consumer.py
+    command: python -u -m app.workers.kafka_consumer
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/costlens
+      # DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/costlens
+      DATABASE_URL: ${DATABASE_URL}
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       - postgres
@@ -86,6 +88,8 @@ services:
     container_name: costlens-mlflow
     ports:
       - "5001:5000"
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
     command: mlflow ui --host 0.0.0.0
 
 volumes:

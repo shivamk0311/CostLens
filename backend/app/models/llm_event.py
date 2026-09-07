@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float, DateTime
+from sqlalchemy import Column, String, Integer, Boolean, Float, DateTime
 from datetime import datetime
 from app.database.connection import Base
 
@@ -21,6 +21,10 @@ class LLMEvent(Base):
     estimated_cost = Column(Float)
 
     latency_ms = Column(Integer)
+
+    cache_hit = Column(Boolean, nullable=False, default=False)
+
+    cache_type = Column(String, nullable=True)
 
     created_at = Column(
         DateTime,

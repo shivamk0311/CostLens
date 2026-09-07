@@ -35,7 +35,7 @@ def increment_cache_hit(db, cache_entry):
 
     return cache_entry
 
-def find_semantic_cache_match(db, embedding, similarity_threshold=0.80):
+def find_semantic_cache_match(db, embedding, similarity_threshold=0.67):
 
     results = (db.query(
                     SemanticCache,
@@ -49,12 +49,16 @@ def find_semantic_cache_match(db, embedding, similarity_threshold=0.80):
                 
     
     if not results:
-        return None 
+        return None , 0.0
     
     cache_entry, distance = results
 
     similarity = 1 - distance
-
+    print(
+        f"SEMANTIC SEARCH | "
+        f"similarity={similarity:.4f} | "
+        f"threshold={similarity_threshold}"
+    )
     if similarity >= similarity_threshold:
         return cache_entry, similarity
 

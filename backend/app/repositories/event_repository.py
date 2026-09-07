@@ -9,7 +9,9 @@ def create_llm_event(
         completion_tokens,
         total_tokens,
         estimated_cost,
-        latency_ms
+        latency_ms,
+        cache_hit=False,
+        cache_type=None
 ):
     event = LLMEvent(
 
@@ -25,7 +27,11 @@ def create_llm_event(
 
             estimated_cost = estimated_cost,
 
-            latency_ms = latency_ms
+            latency_ms = latency_ms,
+
+            cache_hit=cache_hit,
+            
+            cache_type=cache_type
         )
 
     db.add(event)

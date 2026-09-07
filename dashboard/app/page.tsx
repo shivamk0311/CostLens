@@ -52,32 +52,87 @@ export default function Home(){
   const [cacheStats, setCacheStats] = useState<CacheStats | null>(null);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/costs/summary") 
-    .then((res) => res.json())
-    .then((data) => setSummary(data))
-    .catch((err) => console.error(err));
 
-    fetch("http://127.0.0.1:8000/costs/by-feature")
-    .then((res) => res.json())
-    .then((data) => setFeatureCosts(data))
-    .catch((err) => console.error(err))
+    const fetchDashboardData = async () => {
+    try {
 
-    fetch("http://127.0.0.1:8000/costs/by-model")
-    .then((res) => res.json())
-    .then((data) => setModelCosts(data))
-    .catch((err) => console.error(err))
+      const [
+        summaryRes,
+        featureRes,
+        modelRes,
+        eventsRes,
+        cacheRes
+      ] = await Promise.all([
+        fetch(
+          "http://127.0.0.1:8000/costs/summary",
+          { cache: "no-store" }
+        ),
 
-    fetch("http://127.0.0.1:8000/events")
-    .then((res) => res.json())
-    .then((data) => setEvents(data))
-    .catch((err) => console.error(err))
-    
-    fetch("http://127.0.0.1:8000/cache/stats")
-    .then((res) => res.json())
-    .then((data) => setCacheStats(data))
-    .catch((err) => console.error(err))
-    
-  }, []);
+        fetch(
+          "http://127.0.0.1:8000/costs/by-feature",
+          { cache: "no-store" }
+        ),
+
+        fetch(
+          "http://127.0.0.1:8000/costs/by-model",
+          { cache: "no-store" }
+        ),
+
+        fetch(
+          "http://127.0.0.1:8000/events",
+          { cache: "no-store" }
+        ),
+
+        fetch(
+          "http://127.0.0.1:8000/cache/stats",
+          { cache: "no-store" }
+        ),
+      ]);
+
+      const [
+        summaryData,
+        featureData,
+        modelData,
+        eventsData,
+        cacheData
+      ] = await Promise.all([
+        summaryRes.json(),
+        featureRes.json(),
+        modelRes.json(),
+        eventsRes.json(),
+        cacheRes.json(),
+      ]);
+
+      setSummary(summaryData);
+      setFeatureCosts(featureData);
+      setModelCosts(modelData);
+      setEvents(eventsData);
+      setCacheStats(cacheData);
+
+    } catch (error) {
+      console.error(
+        "Failed to refresh CostLens dashboard:",
+        error
+      );
+    }
+  };
+
+
+  // Fetch immediately when dashboard opens
+  fetchDashboardData();
+
+
+  // Then refresh every 3 seconds
+  const interval = setInterval(
+    fetchDashboardData,
+    3000
+  );
+
+
+  // Stop polling if component is removed
+  return () => clearInterval(interval);
+
+}, []);
 
   return (
     <main className='min-h-screen bg-slate-950 text-white p-8'>
