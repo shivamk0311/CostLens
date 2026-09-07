@@ -6,7 +6,6 @@ from app.schemas.chat import ChatCompletionRequest
 from app.dependencies.db import get_db
 from app.services.openai_service import call_openai_chat_completion
 from app.services.cost_service import calculate_cost
-from app.repositories.event_repository import create_llm_event
 
 
 from app.services.embedding_service import generate_embedding
@@ -29,7 +28,7 @@ router = APIRouter()
 async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(get_db), x_costlens_feature: str | None = Header(default = "unknown")):
     
     start_time = time.time()
-    prompt = "".join(message.content for message in request.messages)
+    prompt = " ".join(message.content for message in request.messages)
 
     exact_cache_match = find_exact_cache_match(db, prompt)
 
@@ -61,7 +60,7 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
         }
     
     embedding = generate_embedding(prompt)
-    semantic_cache_match, similarity_score  =  (find_semantic_cache_match(db, embedding, similarity_threshold=0.90))
+    semantic_cache_match, similarity_score  =  (find_semantic_cache_match(db, embedding, similarity_threshold=0.80))
 
     if semantic_cache_match:
         increment_cache_hit(db, semantic_cache_match)
@@ -90,10 +89,11 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
 
         return {
             "costlens": {
-                "semantic_cache_hit": True,
-                "cache-type": "semantic",
+                "cache_hit": True,
+                "cache_type": "semantic",
                 "feature": x_costlens_feature,
                 "model": request.model, 
+                "similarity_score": round(similarity_score, 4),
             },
             "openai_response" : cached_response
         }
@@ -129,7 +129,7 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
         db=db,
         prompt=prompt,
         embedding=embedding,
-        response=json.dumps(openai_response),
+        response=openai_response,
     )
 
     log_cache_experiment(
@@ -139,17 +139,6 @@ async def chat_completions(request: ChatCompletionRequest, db: Session=Depends(g
         latency_ms=latency_ms,
         estimated_cost=estimated_cost,
     )
-
-    # create_llm_event(
-    #     db=db,
-    #     feature=x_costlens_feature,
-    #     model=request.model,
-    #     prompt_tokens=prompt_tokens,
-    #     completion_tokens=completion_tokens,
-    #     total_tokens=total_tokens,
-    #     estimated_cost=estimated_cost,
-    #     latency_ms=latency_ms
-    # )
 
     return {
         "costlens":{
